@@ -1,38 +1,13 @@
 # GitHub Actions Pipeline
 
-This directory contains GitHub Actions workflows for automated scraping and data collection from Boshamlan.
+This directory contains the GitHub Actions workflow for automated scraping and data collection from Boshamlan.
 
-## Workflows
+## Workflow
 
-### 1. `pipeline.yml` - Main Pipeline Orchestrator
-**Purpose:** Coordinates the execution of all scraping workflows and tracks their status.
+### `scraper.yml` - Daily Scraper Pipeline
+**Purpose:** Complete automated pipeline that scrapes data, uploads to S3, and tracks execution status.
 
 **Schedule:** Daily at 12:00 AM UTC
-
-**Workflow:**
-1. Runs unified scraper workflow (`scraper.yml`)
-   - Properties Scraper runs first
-   - Offices Scraper runs after properties complete
-2. Updates `status.json` with execution results
-
-**Outputs:**
-- Creates/updates `status.json` in the repository root with:
-  - Execution date and timestamp
-  - Overall pipeline status (success/failed)
-  - Individual scraper statuses
-  - Pipeline run ID and number
-
-**Manual Trigger:** Available via GitHub Actions tab
-
----
-
-### 2. `scraper.yml` - Unified Scraper Workflow
-**Purpose:** Single workflow that runs both properties and offices scrapers sequentially.
-
-**Can be triggered by:**
-- Pipeline workflow
-- Schedule (daily at 12:00 AM UTC)
-- Manual trigger
 
 **Jobs:**
 1. **scrape-properties** - Scrapes property listings
@@ -49,6 +24,17 @@ This directory contains GitHub Actions workflows for automated scraping and data
    - Uploads images to S3
    - Generates Excel files per office
    - Uploads Excel files to S3
+
+3. **update-status** - Updates status tracking (runs after both, always)
+   - Collects execution status from both scrapers
+   - Creates/updates `status.json` in repository root
+   - Commits status file to repository
+   - Uploads status as artifact
+
+**Can be triggered by:**
+- Schedule (daily at 12:00 AM UTC)
+- Manual trigger from GitHub Actions tab
+- Workflow call from other workflows
 
 **Performance Optimization:**
 - **Pip caching**: Python packages are cached automatically
@@ -119,12 +105,10 @@ The workflows use GitHub Actions cache to speed up execution:
 
 ## Manual Execution
 
-You can manually trigger any workflow:
+You can manually trigger the workflow:
 
 1. Go to **Actions** tab in GitHub
-2. Select the workflow you want to run:
-   - **Daily Scraper Pipeline** - runs the entire pipeline
-   - **Daily Scraper** - runs both scrapers (properties then offices)
+2. Select **Daily Scraper Pipeline**
 3. Click **Run workflow**
 4. Select branch (usually `main`)
 5. Click **Run workflow** button
@@ -147,14 +131,14 @@ All workflows provide detailed logs:
 
 ---
 
-## Workflow Dependencies
+## Workflow Structure
 
 ```
-pipeline.yml
-└── scraper.yml
-    ├── scrape-properties (job 1)
-    └── scrape-offices (job 2, runs after job 1)
-        └── status.json update (runs after both, always)
+scraper.yml (Daily Scraper Pipeline)
+├── Job 1: scrape-properties
+├── Job 2: scrape-offices (needs: properties)
+└── Job 3: update-status (needs: [properties, offices], always runs)
+    └── Creates/commits status.json
 ```
 
 ---
@@ -174,8 +158,8 @@ Check `status.json` to identify which workflow failed, then:
 - Check git push logs for errors
 
 ### Individual Workflow Failed
-Each workflow can be run independently for testing:
+You can re-run the workflow from the Actions tab:
 1. Go to Actions tab
-2. Select the failed workflow
-3. Click "Run workflow" to retry
+2. Select the failed workflow run
+3. Click "Re-run failed jobs" or "Re-run all jobs"
 4. Check logs for specific error details

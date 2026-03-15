@@ -54,8 +54,8 @@ The pipeline orchestrates two scraping workflows and tracks their execution stat
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              STEP 2: Update Status                          │
-│  Always runs (even if previous steps fail)                  │
+│              JOB 3: Update Status                           │
+│  Depends on: Jobs 1 & 2 (always runs)                      │
 │  ┌───────────────────────────────────────────────┐         │
 │  │ 1. Checkout code                              │         │
 │  │ 2. Determine overall status:                  │         │

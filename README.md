@@ -16,8 +16,7 @@ Automated web scraping system for collecting real estate data from Boshamlan.com
 ```
 EX2-BS/
 ├── .github/workflows/       # GitHub Actions workflows
-│   ├── pipeline.yml        # Main pipeline orchestrator
-│   ├── scraper.yml         # Unified scraper (properties + offices)
+│   ├── scraper.yml         # Complete pipeline (scraper + status)
 │   ├── README.md          # Workflows documentation
 │   └── PIPELINE_FLOW.md   # Pipeline flow diagram
 ├── properties/             # Properties scraping module
@@ -36,12 +35,11 @@ EX2-BS/
 
 ## 🔄 Pipeline Workflow
 
-The GitHub Actions pipeline runs daily at 12:00 AM UTC:
+The GitHub Actions pipeline runs daily at 12:00 AM UTC in a single workflow with 3 jobs:
 
-1. **Unified Scraper** (`scraper.yml`) runs both:
-   - Properties Scraper (job 1)
-   - Offices Scraper (job 2 - runs after properties)
-2. **Status Update** - Updates status.json with execution results
+1. **Properties Scraper** - Scrapes rent/sale/exchange categories
+2. **Offices Scraper** - Scrapes office listings (runs after properties)
+3. **Status Update** - Updates status.json with execution results (always runs)
 
 ### Pipeline Status
 
@@ -109,8 +107,7 @@ Check the latest pipeline status in [`status.json`](status.json):
 
 3. **Manual Trigger**
    - Go to Actions tab
-   - Select "Daily Scraper Pipeline" (full pipeline)
-   - Or select "Daily Scraper" (just scrapers, no status update)
+   - Select "Daily Scraper Pipeline"
    - Click "Run workflow"
 
 ## 📊 Data Output
