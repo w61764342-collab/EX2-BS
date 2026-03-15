@@ -233,7 +233,9 @@ class OfficeDataPipeline:
                         if s3_image_url:
                             listing['s3_image_url'] = s3_image_url
                             uploaded_images_count += 1
-                        await asyncio.sleep(0.3)  # Rate limiting
+                        # Random delay between image downloads (0.3-0.8 seconds)
+                        from scraper_utils import random_short_delay
+                        await random_short_delay(0.3, 0.8)
             
             print(f"\n✓ Uploaded {uploaded_images_count} images to S3")
         

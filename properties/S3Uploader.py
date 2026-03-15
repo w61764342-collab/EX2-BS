@@ -5,6 +5,11 @@ from botocore.exceptions import ClientError, NoCredentialsError
 import aiohttp
 import asyncio
 from urllib.parse import urlparse
+import sys
+
+# Add parent directory to path to import scraper_utils
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from scraper_utils import get_random_headers, random_short_delay
 
 
 class S3Uploader:
@@ -235,7 +240,10 @@ class S3Uploader:
             Tuple of (image_data, content_type) or (None, None) if failed
         """
         try:
-            async with aiohttp.ClientSession() as session:
+            # Get random headers for the request
+            headers = get_random_headers()
+            
+            async with aiohttp.ClientSession(headers=headers) as session:
                 async with session.get(image_url, timeout=aiohttp.ClientTimeout(total=timeout)) as response:
                     if response.status == 200:
                         image_data = await response.read()
@@ -348,6 +356,9 @@ class S3Uploader:
                 print(f"    ✓ Uploaded to {s3_uri}")
             else:
                 print(f"    ✗ Failed to upload image {i+1}")
+            
+            # Random delay between image downloads (0.3-1.0 seconds)
+            await random_short_delay(0.3, 1.0)
         
         print(f"\n✓ Successfully uploaded {len(results)}/{len(cards_data)} images")
         return results

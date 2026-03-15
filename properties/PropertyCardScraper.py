@@ -3,6 +3,19 @@ from playwright.async_api import async_playwright
 import json
 from datetime import datetime, timedelta
 import aiohttp
+import sys
+import os
+
+# Add parent directory to path to import scraper_utils
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from scraper_utils import (
+    random_delay, 
+    random_short_delay, 
+    random_long_delay,
+    random_page_load_delay, 
+    get_playwright_context_args,
+    get_random_headers
+)
 
 
 class PropertyCardScraper:
@@ -14,15 +27,17 @@ class PropertyCardScraper:
     async def scrape_cards(self, max_retries=2):
         async with async_playwright() as p:
             self.browser = await p.chromium.launch(headless=True)
-            self.context = await self.browser.new_context()
+            # Use random user-agent and browser settings
+            context_args = get_playwright_context_args()
+            self.context = await self.browser.new_context(**context_args)
             main_page = await self.context.new_page()
 
             try:
                 print(f"Navigating to {self.url}...")
                 await main_page.goto(self.url, wait_until='domcontentloaded', timeout=30000)
                 
-                # Wait a bit for content to load
-                await main_page.wait_for_timeout(2000)
+                # Random page load delay (1.5-3.5 seconds)
+                await random_page_load_delay()
                 
                 # Try multiple possible selectors
                 possible_selectors = [
@@ -240,7 +255,10 @@ class PropertyCardScraper:
         try:
             api_url = f"https://api-v2.boshamlan.com/api/listings/{post_id}"
             
-            async with aiohttp.ClientSession() as session:
+            # Get random headers for the request
+            headers = get_random_headers()
+            
+            async with aiohttp.ClientSession(headers=headers) as session:
                 async with session.get(api_url, timeout=aiohttp.ClientTimeout(total=10)) as response:
                     if response.status == 200:
                         data = await response.json()
@@ -283,8 +301,8 @@ class PropertyCardScraper:
             
             await new_page.goto(self.url, wait_until='load')
             
-            # Wait for JavaScript and Svelte to be ready
-            await new_page.wait_for_timeout(3000)
+            # Random delay for JavaScript and Svelte to be ready (2-4 seconds)
+            await random_delay(2.0, 4.0)
             
             # Wait for cards to load
             await new_page.wait_for_selector('article[data-post-id]', timeout=10000)
@@ -299,7 +317,8 @@ class PropertyCardScraper:
                 
                 # Scroll card into view
                 await matching_card.scroll_into_view_if_needed()
-                await new_page.wait_for_timeout(500)
+                # Random short delay (0.3-0.8 seconds)
+                await random_short_delay(0.3, 0.8)
                 
                 # Try JavaScript click first
                 await new_page.evaluate(f'''() => {{
@@ -311,7 +330,8 @@ class PropertyCardScraper:
                 
                 # Wait for URL change
                 for i in range(50):  # 5 seconds
-                    await new_page.wait_for_timeout(100)
+                    # Random tiny delay (0.08-0.15 seconds)
+                    await random_short_delay(0.08, 0.15)
                     current_url = new_page.url
                     
                     # Check if URL changed
@@ -360,7 +380,8 @@ class PropertyCardScraper:
                 is_disabled = await button.get_property('disabled')
                 if not is_disabled:
                     await button.click()
-                    await asyncio.sleep(10)  # Wait for items to load after clicking
+                    # Random long delay for items to load (8-12 seconds)
+                    await random_long_delay(8.0, 12.0)
         except Exception as e:
             print(f"Could not click 'Show More' button: {e}")
 
@@ -377,7 +398,8 @@ class PropertyCardScraper:
             
             # Scroll to bottom
             await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-            await asyncio.sleep(3)  # Wait for content to load
+            # Random delay for content to load (2.5-4.0 seconds)
+            await random_delay(2.5, 4.0)
             
             # Get new height after scrolling
             new_height = await page.evaluate('document.body.scrollHeight')

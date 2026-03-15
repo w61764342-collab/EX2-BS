@@ -4,6 +4,12 @@ import json
 from datetime import datetime, timedelta
 import re
 from bs4 import BeautifulSoup
+import sys
+import os
+
+# Add parent directory to path to import scraper_utils
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from scraper_utils import random_delay, random_short_delay, random_page_load_delay, get_playwright_context_args
 
 
 class OfficeScraper:
@@ -36,7 +42,9 @@ class OfficeScraper:
         
         async with async_playwright() as p:
             self.browser = await p.chromium.launch(headless=True)
-            self.context = await self.browser.new_context()
+            # Use random user-agent and browser settings
+            context_args = get_playwright_context_args()
+            self.context = await self.browser.new_context(**context_args)
             
             try:
                 # Step 1: Get all offices from main agents page
@@ -62,7 +70,8 @@ class OfficeScraper:
                             print(f"  Getting views for listing {listing_idx}/{len(listings)}: {listing['name'][:50]}...")
                             views = await self.scrape_listing_views(listing['url'])
                             listing['views'] = views
-                            await asyncio.sleep(0.5)  # Rate limiting
+                            # Random delay between 0.5 to 1.5 seconds
+                            await random_short_delay(0.5, 1.5)
                         
                         office['listings'] = listings
                     else:
@@ -71,8 +80,8 @@ class OfficeScraper:
                     
                     all_offices.append(office)
                     
-                    # Rate limiting between offices
-                    await asyncio.sleep(1)
+                    # Random delay between offices (1-3 seconds)
+                    await random_delay(1.0, 3.0)
                 
                 return all_offices
                 
@@ -93,7 +102,8 @@ class OfficeScraper:
         try:
             print(f"Loading agents page: {self.agents_url}")
             await page.goto(self.agents_url, wait_until='domcontentloaded', timeout=30000)
-            await page.wait_for_timeout(2000)
+            # Random page load delay (1.5-3.5 seconds)
+            await random_page_load_delay()
             
             # Get page content
             content = await page.content()
@@ -199,7 +209,8 @@ class OfficeScraper:
         try:
             print(f"  Loading office page: {office_url}")
             await page.goto(office_url, wait_until='domcontentloaded', timeout=30000)
-            await page.wait_for_timeout(2000)
+            # Random page load delay (1.5-3.5 seconds)
+            await random_page_load_delay()
             
             # Get page content
             content = await page.content()
@@ -334,7 +345,8 @@ class OfficeScraper:
         
         try:
             await page.goto(listing_url, wait_until='domcontentloaded', timeout=30000)
-            await page.wait_for_timeout(1500)
+            # Random delay (1.0-2.5 seconds)
+            await random_delay(1.0, 2.5)
             
             # Get page content
             content = await page.content()

@@ -7,6 +7,10 @@ import json
 import pandas as pd
 from datetime import datetime, timedelta
 
+# Add parent directory to path to import scraper_utils
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from scraper_utils import random_delay
+
 
 class CategoryScraper:
     """
@@ -129,8 +133,8 @@ class CategoryScraper:
                 category_data[subcat_name] = []
                 failed_subcats.append(subcat_name)
             
-            # Small delay between requests to be respectful
-            await asyncio.sleep(2)
+            # Random delay between subcategory requests (1.5-3.5 seconds)
+            await random_delay(1.5, 3.5)
         
         # Store the scraped data for later use (e.g., image uploading)
         self.last_scraped_data[category_name] = category_data

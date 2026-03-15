@@ -3,6 +3,11 @@ import os
 from datetime import datetime
 from CategoryScraper import CategoryScraper
 from S3Uploader import S3Uploader
+import sys
+
+# Add parent directory to path to import scraper_utils
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from scraper_utils import random_delay
 
 
 class MainS3Scraper:
@@ -67,7 +72,8 @@ class MainS3Scraper:
             print(f"{'#'*70}\n")
             
             await self.category_scraper.scrape_category(category_name)
-            await asyncio.sleep(3)
+            # Random delay between categories (2-4 seconds)
+            await random_delay(2.0, 4.0)
         
         if not self.category_scraper.last_scraped_data:
             print("WARNING: No data was scraped. Nothing to upload.")

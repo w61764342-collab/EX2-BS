@@ -5,6 +5,11 @@ from botocore.exceptions import ClientError, NoCredentialsError
 import aiohttp
 import asyncio
 from urllib.parse import urlparse
+import sys
+
+# Add parent directory to path to import scraper_utils
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from scraper_utils import get_random_headers
 
 
 class OfficeS3Uploader:
@@ -188,8 +193,11 @@ class OfficeS3Uploader:
             # Create unique image name
             image_name = f"listing_{listing_index}{ext}"
             
+            # Get random headers for the request
+            headers = get_random_headers()
+            
             # Download image
-            async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession(headers=headers) as session:
                 async with session.get(image_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
                     if response.status == 200:
                         # Create temp directory
