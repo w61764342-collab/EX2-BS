@@ -50,6 +50,12 @@ This directory contains GitHub Actions workflows for automated scraping and data
    - Generates Excel files per office
    - Uploads Excel files to S3
 
+**Performance Optimization:**
+- **Pip caching**: Python packages are cached automatically
+- **Playwright browser caching**: Chromium browser (~130MB) is cached between runs
+- Cache invalidation: Only re-downloads when `requirements.txt` changes
+- Typical speedup: ~2-3 minutes saved per workflow run
+
 ---
 
 ## Status Tracking
@@ -65,11 +71,11 @@ The pipeline automatically maintains a `status.json` file in the repository root
   "workflows": {
     "properties": {
       "status": "success",
-      "workflow": "properties.yml"
+      "workflow": "scraper.yml"
     },
     "offices": {
       "status": "success",
-      "workflow": "offices.yml"
+      "workflow": "scraper.yml"
     }
   },
   "pipeline_run_id": "1234567890",
@@ -91,6 +97,23 @@ Configure these secrets in your GitHub repository settings:
 
 - `AWS_ACCESS_KEY_ID` - AWS access key for S3 uploads
 - `AWS_SECRET_ACCESS_KEY` - AWS secret key for S3 uploads
+
+### Caching
+The workflows use GitHub Actions cache to speed up execution:
+
+**What's cached:**
+- Python packages (via `cache: 'pip'` in setup-python)
+- Playwright Chromium browser (~130MB)
+
+**Cache benefits:**
+- Pip packages: ~30 seconds saved
+- Playwright browser: ~1-2 minutes saved per job
+- Total savings: ~2-4 minutes per pipeline run
+
+**Cache invalidation:**
+- Pip cache: Updates when `requirements.txt` changes
+- Playwright cache: Updates when `requirements.txt` changes
+- GitHub cache retention: 7 days (refreshed on each use)
 
 ---
 
