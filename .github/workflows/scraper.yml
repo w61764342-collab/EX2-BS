@@ -21,6 +21,9 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+permissions:
+  contents: write  # Allow workflow to push changes
+
 jobs:
   scrape-properties:
     name: Scrape Properties
@@ -137,7 +140,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
       
       - name: Determine overall status
         id: status
