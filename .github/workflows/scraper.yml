@@ -1,4 +1,4 @@
-name: Daily Scraper Pipeline
+name: Daily Pipeline
 
 on:
   # Run every day at 12:00 AM UTC
